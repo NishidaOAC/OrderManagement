@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export type UserListItem = {
   id: number;
@@ -15,7 +16,7 @@ export type UserListItem = {
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private readonly http = inject(HttpClient);
-  private readonly apiBase = 'http://localhost:5000/api';
+  private readonly apiBase = environment.apiUrl;
 
   getUsers(): Observable<{ users: UserListItem[] }> {
     return this.http.get<{ users: UserListItem[] }>(`${this.apiBase}/users`);

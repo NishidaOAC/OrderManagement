@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import {
   CreateOrderNotePayload,
   CreateOrderHistoryPayload,
@@ -16,7 +17,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class OrderService {
   private readonly http = inject(HttpClient);
-  private readonly apiBase = 'http://localhost:5000/api';
+  private readonly apiBase = environment.apiUrl;
 
   getOrders(): Observable<{ orders: OrderListItem[] }> {
     return this.http.get<{ orders: OrderListItem[] }>(`${this.apiBase}/orders`);
