@@ -3,11 +3,11 @@ import { ActivatedRoute } from '@angular/router';
 import { OrderService } from '../../../core/services/order.service';
 import { OrderDetailResponse } from '../../../core/interfaces/order.interface';
 import { AuthService } from '../../../core/auth/auth.service';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-order-detail',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, FormsModule],
   templateUrl: './order-detail.html',
   styleUrl: './order-detail.scss',
 })
@@ -922,7 +922,7 @@ export class OrderDetail implements OnInit {
     });
   }
 
-  private formatDateForInput(raw: string | null): string {
+  public formatDateForInput(raw: string | null): string {
     if (!raw) {
       return '';
     }

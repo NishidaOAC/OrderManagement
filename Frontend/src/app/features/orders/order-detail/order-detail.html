@@ -154,11 +154,16 @@
           <div class="initial-order-actions">
             <div class="field-block initial-order-request">
               <label>Warehouse Collection Request:</label>
-              <select formControlName="warehouseRequest">
-                @for (option of warehouseRequestOptions; track option) {
-                  <option [value]="option">{{ option }}</option>
-                }
-              </select>
+              {{currentOrderStage}}
+              @if(currentOrderStage === 'ORDER_RECEIVED') {
+                <select formControlName="warehouseRequest">
+                  @for (option of warehouseRequestOptions; track option) {
+                    <option [value]="option">{{ option }}</option>
+                  }
+                </select>
+              }@else {
+                <p class="field-text field-readonly">{{ orders[0].warehouse_request }}</p>
+              }
             </div>
 
             <div class="initial-proceed-row">
@@ -190,7 +195,7 @@
             <div class="delivery-fields">
               <div class="field-block">
                 <label>Warehouse Collection Request:</label>
-                @if (isDeliveryDetailsEditable) {
+                @if (currentOrderStage === 'ORDER_RECEIVED') {
                   <select formControlName="warehouseRequest">
                     @for (option of warehouseRequestOptions; track option) {
                       <option [value]="option">{{ option }}</option>
@@ -362,15 +367,26 @@
         <div class="dates-grid">
           <label>
             Scheduled Date:
-            <input type="text" [value]="orderSummary.orderDate" />
+            <input
+              type="date"
+              [(ngModel)]="scheduledDateInput"
+              name="scheduledDate"
+            />
           </label>
 
           <label>
             Deadline:
-            <input type="text" [value]="orderSummary.orderDate" disabled />
+            <input
+              type="date"
+              [value]="formatDateForInput(orderSummary.orderDate)"
+              disabled
+            />
           </label>
         </div>
-        <button class="primary-btn" type="button">Save</button>
+
+        <button class="primary-btn" type="button" (click)="saveScheduledDate()">
+          Save
+        </button>
       </section>
 
       <section class="side-card notes-card">
