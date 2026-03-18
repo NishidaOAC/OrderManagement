@@ -1,4 +1,4 @@
-require('dotenv').config();
+// require('dotenv').config();
 
 const sequelize = require('../config/database');
 const models = require('../models');
@@ -10,7 +10,7 @@ async function createTestOrder() {
     await sequelize.authenticate();
     await sequelize.sync();
 
-    const totalOrders = Number(process.env.TEST_ORDER_COUNT || 5);
+    const totalOrders = 5;
 
     for (let i = 1; i <= totalOrders; i += 1) {
       const serial = String(i).padStart(3, '0');
