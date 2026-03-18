@@ -20,7 +20,6 @@ export const routes: Routes = [
       { path: 'orders/:id', component: OrderDetail, data: { renderMode: 'client' } },
       { path: 'users', component: Users },
       { path: 'users/create', component: CreateUser },
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },
   { path: '**', redirectTo: 'login' },
