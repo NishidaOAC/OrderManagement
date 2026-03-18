@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 type LoginPayload = {
   email: string;
@@ -34,7 +35,7 @@ export class AuthService {
   private readonly tokenKey = 'auth_token';
   private readonly userIdKey = 'user_id';
   private readonly userNameKey = 'user_name';
-  private readonly apiBase = 'http://localhost:5000/api';
+  private readonly apiBase = environment.apiUrl;
 
   login(payload: LoginPayload): Observable<void> {
     return this.http.post<LoginResponse>(`${this.apiBase}/auth/login`, payload).pipe(
