@@ -1,20 +1,5 @@
 const express = require('express');
-const { Order, OrderItem, OrderStatusHistory, Delivery, DeliveryItem, OrderNote, User, DeliveryChannel } = require('../../../models');
-
-// GET /orders/delivery-channels - fetch all delivery channels
-router.get('/delivery-channels', async (_req, res) => {
-  try {
-    const channels = await DeliveryChannel.findAll({
-      where: { is_active: true },
-      order: [['name', 'ASC']],
-      attributes: ['id', 'name', 'description']
-    });
-    return res.json({ channels });
-  } catch (error) {
-    return res.status(500).json({ message: 'Failed to fetch delivery channels', error: error.message });
-  }
-});
-const { createDelivery } = require('../services/deliveryService');
+const { Order, OrderItem, OrderStatusHistory, Delivery, DeliveryItem, OrderNote, User } = require('../../../models');
 
 const router = express.Router();
 

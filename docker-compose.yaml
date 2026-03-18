@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: urban_order_pass
       POSTGRES_DB: urban_order_db
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - ./DB:/var/lib/postgresql/data
 
