@@ -1,0 +1,469 @@
+﻿<section class="order-detail-page">
+  <div class="content-grid">
+    <div class="stepper stepper-wide">
+      @for (step of steps; track $index) {
+        <div
+          class="step"
+          [class.step-done]="step.state === 'done'"
+          [class.step-current]="step.state === 'current'"
+          [class.step-upcoming]="step.state === 'upcoming'"
+          [class.step-pending]="step.state === 'pending'"
+        >
+          <div
+            class="dot"
+            [class.dot-done]="isStepDone($index)"
+            [class.dot-current]="isStepCurrent($index)"
+            [class.dot-next]="isStepNext($index)"
+            [class.dot-pending]="isStepPending($index)"
+          >
+            {{ $index + 1 }}
+          </div>
+          @if (!$last) {
+            <div
+              class="step-connector"
+              [class.connector-done]="isConnectorDone($index)"
+              [class.connector-mixed]="isConnectorMixed($index)"
+              [class.connector-pending]="isConnectorPending($index)"
+            ></div>
+          }
+          <div class="label">{{ step.label }}</div>
+          <div class="date">{{ step.date }}</div>
+        </div>
+      }
+    </div>
+    <div class="main-column">
+      @if (loading) {
+        <section class="card summary-card">
+          <p>Loading order details...</p>
+        </section>
+      }
+
+      @if (!loading && errorMessage) {
+        <section class="card summary-card">
+          <p>{{ errorMessage }}</p>
+        </section>
+      }
+
+      <section class="card summary-card">
+        <div class="summary-grid">
+          <div>
+            <h4>Order Summary:</h4>
+            <p><strong>Invoice : {{ orderSummary.invoice }}</strong></p>
+            <p>Order No : <strong>#{{ orderSummary.orderNo }}</strong></p>
+            <p>Order Date : {{ orderSummary.orderDate }}</p>
+            <p>Payment Method : {{ orderSummary.paymentMethod }}</p>
+            <p>Payment Status : {{ orderSummary.paymentStatus }}</p>
+            <p>Total Amount : {{ orderSummary.totalAmount }}</p>
+          </div>
+          <div>
+            <h4>Shipping Address:</h4>
+            <p><strong>{{ shippingAddress.name }}</strong></p>
+            <p>{{ shippingAddress.line1 }}</p>
+            <p>{{ shippingAddress.line2 }}</p>
+            <p>{{ shippingAddress.city }}</p>
+            <p>Email: {{ shippingAddress.email }}</p>
+            <p>Phone: {{ shippingAddress.phone }}</p>
+          </div>
+          <div>
+            <h4>Billing Address:</h4>
+            <p><strong>{{ shippingAddress.name }}</strong></p>
+            <p>{{ shippingAddress.line1 }}</p>
+            <p>{{ shippingAddress.line2 }}</p>
+            <p>{{ shippingAddress.city }}</p>
+          </div>
+        </div>
+        <div class="schedule-lines">
+          <p>Scheduled Date: <strong>{{ orderSummary.orderDate}}</strong></p>
+          <p>Deadline: <strong class="danger">{{ orderSummary.orderDate}}</strong></p>
+        </div>
+
+        @if (statusMessage) {
+          <p class="status-ok">{{ statusMessage }}</p>
+        }
+
+        @if (statusErrorMessage) {
+          <p class="status-error">{{ statusErrorMessage }}</p>
+        }
+      </section>
+
+      <section class="card products-card" [formGroup]="deliveryDetailsForm">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Product</th>
+              <th>Retail Price</th>
+              <th>Discount</th>
+              <th>Sale Price</th>
+              <th>Sub Total</th>
+              <th>Qty to Deliver</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of products; track $index) {
+              <tr>
+                <td>
+                  @if (isOrderReceivedStage) {
+                    {{ $index + 1 }}
+                  } @else {
+                    <input
+                      type="checkbox"
+                      [checked]="item.checked"
+                      [disabled]="item.itemStatus === 'DELIVERED'"
+                      (change)="onProductSelectionChange($index, $event)"
+                    />
+                  }
+                </td>
+                <td>
+                  <div class="product-cell">
+                    <div class="thumb"></div>
+                    <p>{{ item.name }}</p>
+                  </div>
+                </td>
+                <td>{{ item.retailPrice }}</td>
+                <td>{{ item.discount }}</td>
+                <td>{{ item.salePrice }}</td>
+                <td>{{ item.subTotal }}</td>
+                <td>
+                  @if(item.itemStatus === 'PENDING') {
+                    {{ item.dispatchedQty }}
+                  } @else {
+                    <input
+                      class="qty-single"
+                      type="number"
+                      min="1"
+                      [value]="item.dispatchedQty"
+                      [disabled]="isOrderReceivedStage || item.itemStatus === 'DELIVERED'"
+                      (input)="onItemDispatchedQtyChange($index, $event)"
+                      (change)="onItemDispatchedQtyCommit($index, $event)"
+                    />
+                  }
+                </td>
+                <td>
+                  <span class="item-status" [class.is-delivered]="item.itemStatus === 'DELIVERED'">
+                    {{ item.itemStatus }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (isOrderReceivedStage) {
+          <div class="initial-order-actions">
+            <div class="field-block initial-order-request">
+              <label>Warehouse Collection Request:</label>
+              <select formControlName="warehouseRequest">
+                @for (option of warehouseRequestOptions; track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="initial-proceed-row">
+              <button
+                class="initial-proceed-btn"
+                type="button"
+                [disabled]="!hasSelectedProducts || processingProceed || isProceedDone"
+                (click)="onProceedClick()"
+              >
+                {{ processingProceed ? 'Processing...' : (isProceedDone ? 'Processed' : 'Proceed ›') }}
+              </button>
+            </div>
+          </div>
+        } @else if (currentOrderStage !== 'COMPLETED') {
+          <div class="initial-proceed-row">
+            <button
+              class="initial-proceed-btn"
+              type="button"
+              [disabled]="!hasSelectedProducts || processingProceed || isProceedDone"
+              (click)="onProceedClick()"
+            >
+              {{ processingProceed ? 'Processing...' : (isProceedDone ? 'Processed' : 'Proceed ›') }}
+            </button>
+          </div>
+        }
+
+        @if (showDeliveryPanel) {
+          <div class="selection-actions">
+            <div class="delivery-fields">
+              <div class="field-block">
+                <label>Warehouse Collection Request:</label>
+                @if (isDeliveryDetailsEditable) {
+                  <select formControlName="warehouseRequest">
+                    @for (option of warehouseRequestOptions; track option) {
+                      <option [value]="option">{{ option }}</option>
+                    }
+                  </select>
+                } @else {
+                  <p class="field-text field-readonly">{{ orders[0].warehouse_request }}</p>
+                }
+              </div>
+              <div class="field-block">
+                <label>Delivery Channel</label>
+                @if (isDeliveryDetailsEditable) {
+                  <select formControlName="deliveryChannel">
+                    @for (option of deliveryChannelOptions; track option) {
+                      <option [value]="option">{{ option }}</option>
+                    }
+                  </select>
+                } @else {
+                  <p class="field-text field-readonly">{{ orders[0].delivery_channel }}</p>
+                }
+              </div>
+              <div class="field-block">
+                <label>Delivery Charge (AED)</label>
+                @if (isDeliveryDetailsEditable) {
+                  <input type="number" min="0" formControlName="deliveryCharge" />
+                } @else {
+                  <p class="field-text field-readonly">{{ orders[0].delivery_charge !== undefined ? orders[0].delivery_charge : '0' }}</p>
+                }
+              </div>
+              <div class="field-block">
+                <label>Contacted Customer</label>
+                @if (isDeliveryDetailsEditable) {
+                  <select formControlName="contactedCustomer">
+                    @for (option of contactedCustomerOptions; track option) {
+                      <option [value]="option">{{ option }}</option>
+                    }
+                  </select>
+                } @else {
+                  <p class="field-text field-readonly">{{ orders[0].contacted_customer }}</p>
+                }
+              </div>
+            </div>
+            @if (currentOrderStage === 'DELIVERED' || currentOrderStage === 'COMPLETED') {
+              <div class="installation-fields-card" style="background: #f8fafc; border-radius: 8px; padding: 18px 24px 10px; margin: 18px 0 0 0; box-shadow: 0 2px 8px rgb(30 56 98 / 6%);">
+                <div class="installation-row" style="display: flex; gap: 24px; align-items: flex-end;">
+                  <div class="field-block" style="flex: 1;">
+                    <label style="font-size: 15px; color: #4a4a4a; margin-bottom: 6px;">Installation By</label>
+                    @if (currentOrderStage === 'DELIVERED') {
+                      <div [formGroup]="deliveryDetailsForm">
+                        <input type="text" formControlName="installationBy" style="height: 40px; border-radius: 6px; border: 1px solid #c8cfda; font-size: 16px; padding: 0 12px;" />
+                      </div>
+                    } @else if (currentOrderStage === 'COMPLETED') {
+                      <p class="field-text field-readonly" style="min-height: 40px; font-size: 16px; color: #1f1f1f;">{{ orders[0].installation_by }}</p>
+                    }
+                  </div>
+                  <div class="field-block" style="flex: 1;">
+                    <label style="font-size: 15px; color: #4a4a4a; margin-bottom: 6px;">Installation Charge (AED)</label>
+                    @if (currentOrderStage === 'DELIVERED') {
+                      <div [formGroup]="deliveryDetailsForm">
+                        <input type="number" min="0" formControlName="installationCharge" style="height: 40px; border-radius: 6px; border: 1px solid #c8cfda; font-size: 16px; padding: 0 12px;" />
+                      </div>
+                    } @else if (currentOrderStage === 'COMPLETED') {
+                      <p class="field-text field-readonly" style="min-height: 40px; font-size: 16px; color: #1f1f1f;">{{ orders[0].installation_charge }}</p>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
+            <div class="action-buttons">
+              <button class="btn-dark" type="button" [disabled]="!canPrintAndDeliver" (click)="printDeliveryNote()">
+                Print Delivery Note
+              </button>
+              <div class="right-actions">
+                @if (currentOrderStage !== 'COMPLETED') {
+                  <label class="notify-check">
+                    <input type="checkbox" [checked]="notifyCustomer" />
+                    {{ deliveryActionLabel === 'Completed' ? 'Ask Review' : 'Notification' }}
+                  </label>
+                }
+                @if (currentOrderStage !== 'COMPLETED') {
+                  <button
+                    class="btn-primary"
+                    [class.btn-completed]="deliveryActionLabel === 'Completed'"
+                    type="button"
+                    [disabled]="creatingDelivery"
+                    (click)="onDeliverClick()"
+                  >
+                    {{ creatingDelivery ? 'Saving...' : (deliveryActionLabel + ' ›') }}
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </section>
+      @if (currentOrderStage === 'DELIVERED' || currentOrderStage === 'COMPLETED') {
+        <section class="card deliveries-card">
+          <h3>Delivered Table</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Retail Price</th>
+                <th>Discount</th>
+                <th>Sale Price</th>
+                <th>Sub Total</th>
+                <th>Qty to Deliver</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of products; track $index) {
+                <tr>
+                  <td>
+                    @if (isOrderReceivedStage) {
+                      {{ $index + 1 }}
+                    } @else {
+                      <input
+                        type="checkbox"
+                        [checked]="item.checked"
+                        [disabled]="item.itemStatus === 'DELIVERED'"
+                        (change)="onProductSelectionChange($index, $event)"
+                      />
+                    }
+                  </td>
+                  <td>
+                    <div class="product-cell">
+                      <div class="thumb"></div>
+                      <p>{{ item.name }}</p>
+                    </div>
+                  </td>
+                  <td>{{ item.retailPrice }}</td>
+                  <td>{{ item.discount }}</td>
+                  <td>{{ item.salePrice }}</td>
+                  <td>{{ item.subTotal }}</td>
+                  <td>
+                    @if(item.itemStatus === 'PENDING') {
+                      {{ item.dispatchedQty }}
+                    } @else {
+                      <input
+                        class="qty-single"
+                        type="number"
+                        min="1"
+                        [value]="item.dispatchedQty"
+                        [disabled]="isOrderReceivedStage || item.itemStatus === 'DELIVERED'"
+                        (input)="onItemDispatchedQtyChange($index, $event)"
+                        (change)="onItemDispatchedQtyCommit($index, $event)"
+                      />
+                    }
+                  </td>
+                  <td>
+                    <span class="item-status" [class.is-delivered]="item.itemStatus === 'DELIVERED'">
+                      {{ item.itemStatus }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </section>
+      }
+    </div>
+
+
+    <aside class="right-column">
+      <section class="side-card schedule-card">
+        <div class="dates-grid">
+          <label>
+            Scheduled Date:
+            <input type="text" [value]="orderSummary.orderDate" />
+          </label>
+
+          <label>
+            Deadline:
+            <input type="text" [value]="orderSummary.orderDate" disabled />
+          </label>
+        </div>
+        <button class="primary-btn" type="button">Save</button>
+      </section>
+
+      <section class="side-card notes-card">
+        <h3>Customer Note (For Status Updates)</h3>
+        <textarea placeholder="Write customer note..." [value]="customerNote" (input)="onCustomerNoteChange($event)"></textarea>
+        <button class="primary-btn notes-save-btn" type="button" [disabled]="savingCustomerNote" (click)="saveCustomerNote()">
+          {{ savingCustomerNote ? 'Saving...' : 'Save Note' }}
+        </button>
+        <div class="notes-table-wrap">
+          <table class="notes-table">
+            <thead>
+              <tr>
+                <th>Customer Note</th>
+                <th>By</th>
+                <th>At</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (customerNotes.length === 0) {
+                <tr>
+                  <td colspan="3">No customer notes saved</td>
+                </tr>
+              } @else {
+                @for (note of customerNotes; track $index) {
+                  <tr>
+                    <td>{{ note.text }}</td>
+                    <td>{{ note.by }}</td>
+                    <td>{{ note.at }}</td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="side-card notes-card">
+        <h3>Additional Comment</h3>
+        <textarea
+          placeholder="Write internal comment..."
+          [value]="additionalComment"
+          (input)="onAdditionalCommentChange($event)"
+        ></textarea>
+        <button
+          class="primary-btn notes-save-btn"
+          type="button"
+          [disabled]="savingAdditionalComment"
+          (click)="saveAdditionalComment()"
+        >
+          {{ savingAdditionalComment ? 'Saving...' : 'Save Comment' }}
+        </button>
+        <div class="notes-table-wrap">
+          <table class="notes-table">
+            <thead>
+              <tr>
+                <th>Additional Comment</th>
+                <th>By</th>
+                <th>At</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (additionalComments.length === 0) {
+                <tr>
+                  <td colspan="3">No additional comments saved</td>
+                </tr>
+              } @else {
+                @for (comment of additionalComments; track $index) {
+                  <tr>
+                    <td>{{ comment.text }}</td>
+                    <td>{{ comment.by }}</td>
+                    <td>{{ comment.at }}</td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="side-card history-card">
+        <h3>History</h3>
+        <div class="history-list">
+          @for (event of history; track event.key) {
+            <div class="history-item">
+              <span class="history-icon {{ event.iconClass }}">{{ event.sequence }}</span>
+              <div class="history-content">
+                <p class="meta"><strong>{{ event.by }}</strong> · {{ event.at }}</p>
+                <p class="message">{{ event.message }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    </aside>
+  </div>
+</section>

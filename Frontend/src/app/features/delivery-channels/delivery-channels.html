@@ -1,0 +1,69 @@
+<section class="users-page">
+  <div class="users-header">
+    <div>
+      <h2>Delivery Channels</h2>
+      <p>Manage users who can access this system.</p>
+    </div>
+    <a class="create-btn" routerLink="/users/create">Create User</a>
+  </div>
+
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          <tr>
+            <td colspan="7">Loading users...</td>
+          </tr>
+        }
+
+        @if (!loading() && errorMessage() != '') {
+          <tr>
+            <td colspan="7">{{ errorMessage() }}</td>
+          </tr>
+        }
+
+        @if (!loading() && users().length === 0) {
+          <tr>
+            <td colspan="7">No users found.</td>
+          </tr>
+        }
+
+        @for (user of users(); track user.id; let i = $index) {
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td>{{ user.full_name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.role }}</td>
+            <td>
+              <span class="status" [class.active]="user.is_active" [class.inactive]="!user.is_active">
+                {{ user.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td>{{ formatDate(user.createdAt) }}</td>
+            <td>
+              <button
+                class="deactivate-btn"
+                type="button"
+                [disabled]="!user.is_active || deactivatingUserId() === user.id"
+                (click)="deactivate(user)"
+              >
+                {{ deactivatingUserId() === user.id ? 'Deactivating...' : 'Deactivate' }}
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
