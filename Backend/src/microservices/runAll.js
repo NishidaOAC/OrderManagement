@@ -22,8 +22,8 @@ function startService(service) {
   });
 
   child.on('exit', (code) => {
-    // eslint-disable-next-line no-console
     console.log(`${service.name} exited with code ${code}`);
+    setTimeout(() => startService(service), 3000);
   });
 
   children.push(child);
