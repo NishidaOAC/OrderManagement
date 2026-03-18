@@ -11,7 +11,7 @@
     "start:sync": "nodemon src/microservices/syncService.js",
     "start:gateway": "nodemon src/microservices/apiGateway.js",
     "start:micro": "node src/microservices/runAll.js",
-    "create:order": "node src/utils/createTestOrder.js"
+    "start:order": "node src/utils/createTestOrder.js"
   },
   "keywords": [],
   "author": "",
