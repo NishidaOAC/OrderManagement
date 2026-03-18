@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  urban-order-db:
+    image: postgres:15-alpine
+    container_name: urban-order-db
+    restart: always
+    environment:
+      POSTGRES_USER: urban_order_user
+      POSTGRES_PASSWORD: urban_order_pass
+      POSTGRES_DB: urban_order_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./DB:/var/lib/postgresql/data
+
+  urban-order-backend:
+    build:
+      context: ./Backend/
+    container_name: urban-order-backend
+    restart: always
+    depends_on:
+      - urban-order-db
+    environment:
+      DB_NAME: urban_order_db
+      DB_USER: urban_order_user
+      DB_PASSWORD: urban_order_pass
+      DB_HOST: urban-order-db
+      DB_PORT: 5432
+      PORT: 5100
+    ports:
+      - "8100:5100"

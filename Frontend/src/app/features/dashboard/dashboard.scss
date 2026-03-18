@@ -1,0 +1,25 @@
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+}
+
+.card {
+  padding: 20px;
+  border-radius: 10px;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.card span {
+  display: block;
+  font-size: 14px;
+  font-weight: normal;
+}
+
+.blue { background: #2d6cdf; }
+.orange { background: #ff9800; }
+.teal { background: #00bcd4; }
+.yellow { background: #f4b400; }
+.green { background: #2e7d32; }

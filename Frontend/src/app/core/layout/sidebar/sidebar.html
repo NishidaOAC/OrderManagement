@@ -1,0 +1,26 @@
+<div class="sidebar">
+  <div class="logo" routerLink="/dashboard" style="cursor: pointer;">
+    <img src="image.png" alt="Urban Fitness Cart Logo" class="logo-img" />
+  </div>
+  <nav class="menu">
+    <a routerLink="/dashboard" routerLinkActive="active" class="menu-item">
+      <span class="icon">&#128202;</span>
+      <span>Dashboard</span>
+    </a>
+
+    <a routerLink="/orders" (click)="orders()" routerLinkActive="active" class="menu-item">
+      <span class="icon">&#128230;</span>
+      <span>All Orders</span>
+    </a>
+    
+    <a routerLink="/users" routerLinkActive="active" class="menu-item">
+      <span class="icon">&#128101;</span>
+      <span>User List</span>
+    </a>
+
+    <button type="button" class="menu-item logout-btn" (click)="logout()">
+      <span class="icon">&#8617;</span>
+      <span>Logout</span>
+    </button>
+  </nav>
+</div>

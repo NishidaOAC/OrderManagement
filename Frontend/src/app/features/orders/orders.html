@@ -1,0 +1,100 @@
+<section class="orders-page">
+  <div class="filters-card">
+    <div class="filters-grid">
+      <input type="text" placeholder="Invoice Number" />
+      <input type="text" placeholder="Order Number" />
+      <input type="text" placeholder="Name" />
+      <input type="text" placeholder="Mobile" />
+      <input type="text" placeholder="SKU" />
+      <select>
+        <option>Select Country</option>
+      </select>
+      <button type="button">Search</button>
+    </div>
+  </div>
+
+  <div class="table-toolbar">
+    <button class="sort-btn" type="button">
+      Sort By
+      <span class="sort-icon">&#709;</span>
+    </button>
+  </div>
+
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Invoice / Order No</th>
+          <th>Customer Name</th>
+          <th>Pay Mode</th>
+          <th>Pay Status</th>
+          <th>Order Status</th>
+          <th>WH Status</th>
+          <th>Scheduled Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+<tbody>
+
+  @if (loading) {
+    <tr>
+      <td colspan="9">Loading orders...</td>
+    </tr>
+  }
+  @else if (errorMessage) {
+    <tr>
+      <td colspan="9">{{ errorMessage }}</td>
+    </tr>
+  }
+  @else if (orders.length === 0) {
+    <tr>
+      <td colspan="9">No orders found</td>
+    </tr>
+  }
+  @else {
+    @for (order of orders; track order.id) {
+      <tr class="clickable-row" [routerLink]="['/orders', order.id]">
+        <td>
+          {{ order.date }}
+          <span class="sub">{{ order.time }}</span>
+        </td>
+        <td>
+          {{ order.invoiceNumber }}
+          <span class="sub">{{ order.orderNumber }}</span>
+        </td>
+        <td>{{ order.customerName }}</td>
+        <td>{{ order.payMode }}</td>
+        <td>
+          <span class="badge" [ngClass]="order.payStatusClass">
+            {{ order.payStatus }}
+          </span>
+        </td>
+        <td>
+          <span class="badge" [ngClass]="order.orderStatusClass">
+            {{ order.orderStatus }}
+          </span>
+        </td>
+        <td>
+          <span class="badge" [ngClass]="order.warehouseStatusClass">
+            {{ order.warehouseStatus }}
+          </span>
+        </td>
+        <td>{{ order.scheduledDate }}</td>
+        <td>
+          <button
+            class="action-btn"
+            type="button"
+            (click)="$event.stopPropagation()"
+          >
+            &#9998;
+          </button>
+        </td>
+      </tr>
+    }
+  }
+
+</tbody>
+    </table>
+  </div>
+</section>

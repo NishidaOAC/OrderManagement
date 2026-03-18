@@ -1,0 +1,54 @@
+<section class="create-user-page">
+  <div class="create-user-card">
+    <h2>Create User</h2>
+    <p class="subtitle">Add a new user who can log in to this system.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="form-grid">
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" formControlName="fullName" placeholder="Enter full name" />
+          @if (form.controls.fullName.touched && form.controls.fullName.invalid) {
+            <small class="error">Full name is required.</small>
+          }
+        </div>
+
+        <div class="field">
+          <label>Email</label>
+          <input type="email" formControlName="email" placeholder="Enter email" />
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <small class="error">Valid email is required.</small>
+          }
+        </div>
+
+        <div class="field">
+          <label>Password</label>
+          <input type="password" formControlName="password" placeholder="Enter password" />
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <small class="error">Password must be at least 6 characters.</small>
+          }
+        </div>
+
+        <div class="field">
+          <label>Role</label>
+          <select formControlName="role">
+            <option value="admin">admin</option>
+            <option value="manager">manager</option>
+            <option value="staff">staff</option>
+          </select>
+        </div>
+      </div>
+
+      @if (errorMessage) {
+        <p class="error-message">{{ errorMessage }}</p>
+      }
+      @if (successMessage) {
+        <p class="success-message">{{ successMessage }}</p>
+      }
+
+      <button type="submit" [disabled]="loading">
+        {{ loading ? 'Creating...' : 'Create User' }}
+      </button>
+    </form>
+  </div>
+</section>
