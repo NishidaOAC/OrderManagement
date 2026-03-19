@@ -39,6 +39,14 @@ const Order = sequelize.define('Order', {
     type: DataTypes.DECIMAL(10, 2),
     defaultValue: 0
   },
+  ufc_team_members: {
+    type: DataTypes.TEXT, // store as JSON string
+    allowNull: true
+  },
+  installation_team_members: {
+    type: DataTypes.TEXT, // store as JSON string
+    allowNull: true
+  },
 }, {
   tableName: 'orders'
 });

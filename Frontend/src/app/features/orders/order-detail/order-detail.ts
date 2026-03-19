@@ -4,10 +4,15 @@ import { OrderService } from '../../../core/services/order.service';
 import { OrderDetailResponse } from '../../../core/interfaces/order.interface';
 import { AuthService } from '../../../core/auth/auth.service';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatButtonModule} from '@angular/material/button';
+import {MatSelectModule} from '@angular/material/select';
+import {MatCheckboxModule} from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-order-detail',
-  imports: [ReactiveFormsModule, FormsModule],
+  imports: [ReactiveFormsModule, FormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSelectModule, MatCheckboxModule],
   templateUrl: './order-detail.html',
   styleUrl: './order-detail.scss',
 })
@@ -45,9 +50,9 @@ export class OrderDetail implements OnInit {
     paymentStatus: 'Pending',
     totalAmount: '-',
     contactedCustomer: 'Yes',
-     deliveryChannel: 'UFC TEAM',
-     deliveryCharge: '0',
-     warehouseRequest: 'Request Sent',
+    deliveryChannel: 'N/A',
+    deliveryCharge: '0',
+    warehouseRequest: 'Request Sent',
   };
 
   shippingAddress = {
@@ -63,22 +68,83 @@ export class OrderDetail implements OnInit {
   isProceedDone = false;
   isOrderReceivedStage = false;
   currentOrderStage = 'RECEIVED';
-  warehouseRequestOptions = ['Request Sent', 'Request Not Sent'];
-  deliveryChannelOptions = ['UFC Team', 'Courier', 'Warehouse Pickup'];
-  contactedCustomerOptions = ['Yes', 'No'];
+  warehouseRequestOptions = ['N/A', 'Request Sent', 'Request Not Sent'];
+  deliveryChannelOptions = ['N/A', 'UFC Team', 'Supplier', '3rd party'];
+  contactedCustomerOptions = ['N/A', 'Yes', 'No'];
   notifyCustomer = true;
   savingDeliveryDetails = false;
   pendingDeliveryDetailsSave = false;
 
   deliveryDetailsForm: FormGroup = this.fb.group({
-    warehouseRequest: ['Request Sent', Validators.required],
-    deliveryChannel: ['UFC Team', Validators.required],
+    warehouseRequest: ['N/A', Validators.required],
+    deliveryChannel: ['N/A', Validators.required],
     deliveryCharge: [0, [Validators.required, Validators.min(0)]],
-    contactedCustomer: ['Yes', Validators.required],
+    contactedCustomer: ['N/A', Validators.required],
     installationRequired: [false],
     installationCharge: [0, [Validators.min(0)]],
     installationBy: [''],
+    ufcTeamMembers: [[]],
+    installationTeamMembers: [[]],
   });
+  getInstallationTeamMembersDisplay(): string {
+    let raw = this.deliveryDetailsForm?.get('installationTeamMembers')?.value;
+    
+    if (!raw && this.orders?.[0]?.installation_team_members) {
+      raw = this.orders[0].installation_team_members;
+    }
+
+    // If already array of names → just join
+    if (Array.isArray(raw)) {
+      return raw.join(', ');
+    }
+
+    // If string (JSON or comma-separated)
+    if (typeof raw === 'string') {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          return parsed.join(', ');
+        }
+      } catch {
+        return raw; // fallback if already comma-separated string
+      }
+    }
+
+    return '-';
+  }
+
+  getUfcTeamMembersDisplay(): string {
+    let raw = this.deliveryDetailsForm?.get('ufcTeamMembers')?.value;
+
+    if (!raw && this.orders?.[0]?.ufc_team_members) {
+      raw = this.orders[0].ufc_team_members;
+    }
+
+    // If already array of names → just join
+    if (Array.isArray(raw)) {
+      return raw.join(', ');
+    }
+
+    // If string (JSON or comma-separated)
+    if (typeof raw === 'string') {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          return parsed.join(', ');
+        }
+      } catch {
+        return raw; // fallback if already comma-separated string
+      }
+    }
+
+    return '-';
+  }
+
+  ufcTeamList = [
+    { id: 1, name: 'John' },
+    { id: 2, name: 'Alex' },
+    { id: 3, name: 'Michael' }
+  ];
 
   steps = [
     { label: 'Order Received', date: '', state: '' },
@@ -136,10 +202,10 @@ export class OrderDetail implements OnInit {
 
   get deliveryActionLabel(): string {
     if (this.currentOrderStage === 'DELIVERED') {
-      return 'Completed';
+      return 'Mark as Completed';
     }
     if (this.currentOrderStage === 'DISPATCHED') {
-      return 'Mark as Delivery';
+      return 'Mark as Delivered';
     }
     return 'Proceed';
   }
@@ -217,6 +283,8 @@ export class OrderDetail implements OnInit {
       installation_required: formValue.installationRequired,
       installation_charge: formValue.installationCharge,
       installation_by: formValue.installationBy,
+      ufc_team_members: formValue.ufcTeamMembers,
+      installation_team_members: formValue.installationTeamMembers,
     }).subscribe({
       next: () => {
         this.savingDeliveryDetails = false;
@@ -451,6 +519,8 @@ export class OrderDetail implements OnInit {
     this.savingDeliveryDetails = true;
     this.pendingDeliveryDetailsSave = false;
     const formValue = this.deliveryDetailsForm.value;
+    console.log(formValue);
+    
     this.orderService.updateDeliveryDetails(this.orderId, {
       warehouse_request: formValue.warehouseRequest,
       delivery_channel: formValue.deliveryChannel,
@@ -459,6 +529,8 @@ export class OrderDetail implements OnInit {
       installation_required: formValue.installationRequired,
       installation_charge: formValue.installationCharge,
       installation_by: formValue.installationBy,
+      ufc_team_members: formValue.ufcTeamMembers,
+      installation_team_members: formValue.installationTeamMembers,
     }).subscribe({
       next: () => {
         this.savingDeliveryDetails = false;
@@ -478,7 +550,8 @@ export class OrderDetail implements OnInit {
       this.cdr.detectChanges();
       return;
     }
-
+    console.log(this.currentOrderStage);
+    
     if (this.currentOrderStage === 'DELIVERED') {
       if (this.creatingDelivery) {
         return;
@@ -486,8 +559,6 @@ export class OrderDetail implements OnInit {
       this.creatingDelivery = true;
       this.statusMessage = '';
       this.statusErrorMessage = '';
-
-      // Save installation fields before completing
       const formValue = this.deliveryDetailsForm.value;
       this.orderService.updateDeliveryDetails(this.orderId, {
         warehouse_request: formValue.warehouseRequest,
@@ -496,6 +567,7 @@ export class OrderDetail implements OnInit {
         contacted_customer: formValue.contactedCustomer,
         installation_charge: formValue.installationCharge,
         installation_by: formValue.installationBy,
+        installation_team_members: formValue.installationTeamMembers,
       }).subscribe({
         next: () => {
           // Now mark as completed
@@ -743,13 +815,15 @@ export class OrderDetail implements OnInit {
 
     // Patch delivery details form with latest values
     this.deliveryDetailsForm.patchValue({
-      warehouseRequest: order.warehouse_request || 'Request Sent',
-      deliveryChannel: order.delivery_channel || 'UFC Team',
+      warehouseRequest: order.warehouse_request || 'N.A',
+      deliveryChannel: order.delivery_channel || 'N/A',
       deliveryCharge: Number(order.delivery_charge ?? 40),
       contactedCustomer: order.contacted_customer || 'Yes',
       installationRequired: !!order.installation_required,
       installationCharge: Number(order.installation_charge ?? 0),
-      installationBy: order.installation_by || '',
+      installationBy: order.installation_by || 'N/A',
+      ufcTeamMembers: order.ufc_team_members ? (Array.isArray(order.ufc_team_members) ? order.ufc_team_members : (() => { try { return JSON.parse(order.ufc_team_members); } catch { return []; } })()) : [],
+      installationTeamMembers: order.installation_team_members ? (Array.isArray(order.installation_team_members) ? order.installation_team_members : (() => { try { return JSON.parse(order.installation_team_members); } catch { return []; } })()) : [],
     });
 
     this.products = (order.OrderItems || []).map((item) => {
@@ -800,7 +874,7 @@ export class OrderDetail implements OnInit {
         this.extractUserNameFromRemarks(item.remarks) ||
         'System',
       at: this.formatDateTime(item.createdAt),
-      message: item.status ? `${item.status} - Status changed to ${item.status}` : `Status changed to ${item.status || 'Unknown'}`,
+      message: item.status ? `Status changed to ${item.status}` : `Status changed to ${item.status || 'Unknown'}`,
       iconClass: index % 2 === 0 ? 'icon-note' : 'icon-edit',
     }));
 

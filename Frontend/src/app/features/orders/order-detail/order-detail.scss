@@ -410,10 +410,20 @@ input[type='checkbox'] {
 }
 
 .right-actions {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-end;
+  display: flex;
+  justify-content: flex-end;   /* push whole block to right */
+  width: 100%;
+}
+
+.actions-stack {
+  display: flex;
+  flex-direction: column;      /* checkbox above button */
+  align-items: flex-end;       /* align to right */
   gap: 8px;
+}
+
+.notify-check {
+  text-align: right;
 }
 
 .btn-dark,
@@ -527,6 +537,7 @@ textarea {
   // padding: 10px;
   resize: none;
   margin: 8px 0 10px;
+  height: 55px;
 }
 
 .side-card h3 {
