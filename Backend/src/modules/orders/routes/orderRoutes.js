@@ -286,8 +286,9 @@ router.patch('/:id/delivery-details', async (req, res) => {
     const installationBy = String(req.body?.installation_by || '').trim();
     const rawInstallationCharge = req.body?.installation_charge;
     const installationCharge = Number(rawInstallationCharge);
-    console.log(installationBy, installationCharge);
-    
+    const ufcTeamMembers = req.body?.ufc_team_members;
+    const installationTeamMembers = req.body?.installation_team_members;
+
     if (!warehouseRequest) {
       return res.status(400).json({ message: 'warehouse_request is required' });
     }
@@ -311,6 +312,12 @@ router.patch('/:id/delivery-details', async (req, res) => {
     if (installationCharge !== undefined) {
       order.installation_charge = installationCharge;
     }
+    if (ufcTeamMembers !== undefined) {
+      order.ufc_team_members = Array.isArray(ufcTeamMembers) ? JSON.stringify(ufcTeamMembers) : null;
+    }
+    if (installationTeamMembers !== undefined) {
+      order.installation_team_members = Array.isArray(installationTeamMembers) ? JSON.stringify(installationTeamMembers) : null;
+    }
     await order.save();
 
     return res.json({
@@ -321,6 +328,8 @@ router.patch('/:id/delivery-details', async (req, res) => {
         delivery_channel: order.delivery_channel,
         delivery_charge: order.delivery_charge,
         contacted_customer: order.contacted_customer,
+        ufc_team_members: order.ufc_team_members,
+        installation_team_members: order.installation_team_members,
       },
     });
   } catch (error) {

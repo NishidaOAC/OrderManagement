@@ -80,6 +80,8 @@ export interface OrderDetailResponse {
   installation_required?: boolean;
   installation_charge?: number | string | null;
   installation_by?: string | null;
+  ufc_team_members?: string[] | null;
+  installation_team_members?: string[] | null;
 }
 
 export interface UpdateOrderStatusPayload {
@@ -125,6 +127,8 @@ export interface UpdateDeliveryDetailsPayload {
   installation_required?: boolean;
   installation_charge?: number;
   installation_by?: string;
+  ufc_team_members?: string[];
+  installation_team_members?: string[];
 }
 
 export interface CreateOrderNotePayload {

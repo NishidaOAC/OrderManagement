@@ -104,16 +104,16 @@
             @for (item of products; track $index) {
               <tr>
                 <td>
-                  @if (isOrderReceivedStage) {
+                  <!-- @if (isOrderReceivedStage) { -->
                     {{ $index + 1 }}
-                  } @else {
+                  <!-- } @else {
                     <input
                       type="checkbox"
                       [checked]="item.checked"
                       [disabled]="item.itemStatus === 'DELIVERED'"
                       (change)="onProductSelectionChange($index, $event)"
                     />
-                  }
+                  } -->
                 </td>
                 <td>
                   <div class="product-cell">
@@ -126,9 +126,9 @@
                 <td>{{ item.salePrice }}</td>
                 <td>{{ item.subTotal }}</td>
                 <td>
-                  @if(item.itemStatus === 'PENDING') {
+                  <!-- @if(item.itemStatus === 'PENDING') { -->
                     {{ item.dispatchedQty }}
-                  } @else {
+                  <!-- } @else {
                     <input
                       class="qty-single"
                       type="number"
@@ -138,7 +138,7 @@
                       (input)="onItemDispatchedQtyChange($index, $event)"
                       (change)="onItemDispatchedQtyCommit($index, $event)"
                     />
-                  }
+                  } -->
                 </td>
                 <td>
                   <span class="item-status" [class.is-delivered]="item.itemStatus === 'DELIVERED'">
@@ -154,8 +154,7 @@
           <div class="initial-order-actions">
             <div class="field-block initial-order-request">
               <label>Warehouse Collection Request:</label>
-              {{currentOrderStage}}
-              @if(currentOrderStage === 'ORDER_RECEIVED') {
+              @if(currentOrderStage === 'RECEIVED') {
                 <select formControlName="warehouseRequest">
                   @for (option of warehouseRequestOptions; track option) {
                     <option [value]="option">{{ option }}</option>
@@ -167,17 +166,19 @@
             </div>
 
             <div class="initial-proceed-row">
-              <button
-                class="initial-proceed-btn"
-                type="button"
-                [disabled]="!hasSelectedProducts || processingProceed || isProceedDone"
-                (click)="onProceedClick()"
-              >
-                {{ processingProceed ? 'Processing...' : (isProceedDone ? 'Processed' : 'Proceed ›') }}
-              </button>
+              @if (!isProceedDone) {
+                <button
+                  class="initial-proceed-btn"
+                  type="button"
+                  [disabled]="!hasSelectedProducts || processingProceed"
+                  (click)="onProceedClick()"
+                >
+                  {{ processingProceed ? 'Processing...' : (isProceedDone ? 'Processedssssssssssss' : 'Proceed ›') }}
+                </button>
+              }
             </div>
           </div>
-        } @else if (currentOrderStage !== 'COMPLETED') {
+        } @else if (currentOrderStage !== 'COMPLETED' && !isProceedDone) {
           <div class="initial-proceed-row">
             <button
               class="initial-proceed-btn"
@@ -185,114 +186,192 @@
               [disabled]="!hasSelectedProducts || processingProceed || isProceedDone"
               (click)="onProceedClick()"
             >
-              {{ processingProceed ? 'Processing...' : (isProceedDone ? 'Processed' : 'Proceed ›') }}
+              {{ processingProceed ? 'Processing...' : 'Proceed ›' }}
             </button>
           </div>
         }
 
         @if (showDeliveryPanel) {
           <div class="selection-actions">
-            <div class="delivery-fields">
-              <div class="field-block">
-                <label>Warehouse Collection Request:</label>
-                @if (currentOrderStage === 'ORDER_RECEIVED') {
-                  <select formControlName="warehouseRequest">
-                    @for (option of warehouseRequestOptions; track option) {
-                      <option [value]="option">{{ option }}</option>
-                    }
-                  </select>
-                } @else {
-                  <p class="field-text field-readonly">{{ orders[0].warehouse_request }}</p>
+              <div class="delivery-fields" style="display: flex; flex-wrap: nowrap; gap: 12px; align-items: center; margin-bottom: 16px;">
+                <div style="flex: 1; min-width: 140px;">
+                  @if (isDeliveryDetailsEditable) {
+                    <mat-form-field appearance="outline" style="width: 100%; font-size: 13px;">
+                      <mat-label style="font-size: 13px;">Warehouse Collection Request</mat-label>
+                      <mat-select formControlName="warehouseRequest" style="font-size: 13px;">
+                        @for (option of warehouseRequestOptions; track option) {
+                          <mat-option [value]="option" style="font-size: 13px;">{{ option }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <div style="padding: 8px 0 0 8px; font-size: 13px; min-height: 40px;">
+                      <div style="font-size: 12px; color: #888; font-weight: 500; margin-bottom: 2px;">Warehouse Collection Request</div>
+                      {{ orders[0].warehouse_request }}
+                    </div>
+                  }
+                </div>
+                <div style="flex: 1; min-width: 140px;">
+                  @if (isDeliveryDetailsEditable) {
+                    <mat-form-field appearance="outline" style="width: 100%; font-size: 13px;">
+                      <mat-label style="font-size: 13px;">Delivery Channel</mat-label>
+                      <mat-select formControlName="deliveryChannel" style="font-size: 13px;">
+                        @for (option of deliveryChannelOptions; track option) {
+                          <mat-option [value]="option" style="font-size: 13px;">{{ option }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <div style="padding: 8px 0 0 8px; font-size: 13px; min-height: 40px;">
+                      <div style="font-size: 12px; color: #888; font-weight: 500; margin-bottom: 2px;">Delivery Channel</div>
+                      {{ orders[0].delivery_channel }}
+                    </div>
+                  }
+                </div>
+                @if (deliveryDetailsForm.get('deliveryChannel')?.value === 'UFC Team') {
+                  <div style="flex: 1; min-width: 140px;">
+                      @if (isDeliveryDetailsEditable) {
+                        <mat-form-field appearance="outline" style="width: 100%; font-size: 13px;">
+                          <mat-label style="font-size: 13px;">UFC Team Members</mat-label>
+                          <mat-select formControlName="ufcTeamMembers" multiple placeholder="Select UFC Team Members" style="font-size: 13px;">
+                            @for (member of ufcTeamList; track $index) {
+                              <mat-option [value]="member.name" style="font-size: 13px;">{{ member.name }}</mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                      } @else {
+                        <div style="padding: 8px 0 0 8px; font-size: 13px; min-height: 40px;">
+                          <div style="font-size: 12px; color: #888; font-weight: 500; margin-bottom: 2px;">UFC Team Members</div>
+                          {{ getUfcTeamMembersDisplay() }}
+                        </div>
+                      }
+                  </div>
                 }
+                <div style="flex: 1; min-width: 120px;">
+                  @if (isDeliveryDetailsEditable) {
+                    <mat-form-field appearance="outline" style="width: 100%; font-size: 13px;">
+                      <mat-label style="font-size: 13px;">Delivery Charge (AED)</mat-label>
+                      <input matInput type="number" min="0" formControlName="deliveryCharge" style="font-size: 13px;" />
+                    </mat-form-field>
+                  } @else {
+                    <div style="padding: 8px 0 0 8px; font-size: 13px; min-height: 40px;">
+                      <div style="font-size: 12px; color: #888; font-weight: 500; margin-bottom: 2px;">Delivery Charge (AED)</div>
+                      {{ orders[0].delivery_charge !== undefined ? orders[0].delivery_charge : '0' }}
+                    </div>
+                  }
+                </div>
+                <div style="flex: 1; min-width: 120px;">
+                  @if (isDeliveryDetailsEditable) {
+                    <mat-form-field appearance="outline" style="width: 100%; font-size: 13px;">
+                      <mat-label style="font-size: 13px;">Contacted Customer</mat-label>
+                      <mat-select formControlName="contactedCustomer" style="font-size: 13px;">
+                        @for (option of contactedCustomerOptions; track option) {
+                          <mat-option [value]="option" style="font-size: 13px;">{{ option }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <div style="padding: 8px 0 0 8px; font-size: 13px; min-height: 40px;">
+                      <div style="font-size: 12px; color: #888; font-weight: 500; margin-bottom: 2px;">Contacted Customer</div>
+                      {{ orders[0].contacted_customer }}
+                    </div>
+                  }
+                </div>
               </div>
-              <div class="field-block">
-                <label>Delivery Channel</label>
-                @if (isDeliveryDetailsEditable) {
-                  <select formControlName="deliveryChannel">
-                    @for (option of deliveryChannelOptions; track option) {
-                      <option [value]="option">{{ option }}</option>
-                    }
-                  </select>
-                } @else {
-                  <p class="field-text field-readonly">{{ orders[0].delivery_channel }}</p>
-                }
-              </div>
-              <div class="field-block">
-                <label>Delivery Charge (AED)</label>
-                @if (isDeliveryDetailsEditable) {
-                  <input type="number" min="0" formControlName="deliveryCharge" />
-                } @else {
-                  <p class="field-text field-readonly">{{ orders[0].delivery_charge !== undefined ? orders[0].delivery_charge : '0' }}</p>
-                }
-              </div>
-              <div class="field-block">
-                <label>Contacted Customer</label>
-                @if (isDeliveryDetailsEditable) {
-                  <select formControlName="contactedCustomer">
-                    @for (option of contactedCustomerOptions; track option) {
-                      <option [value]="option">{{ option }}</option>
-                    }
-                  </select>
-                } @else {
-                  <p class="field-text field-readonly">{{ orders[0].contacted_customer }}</p>
-                }
-              </div>
-            </div>
             @if (currentOrderStage === 'DELIVERED' || currentOrderStage === 'COMPLETED') {
-              <div class="installation-fields-card" style="background: #f8fafc; border-radius: 8px; padding: 18px 24px 10px; margin: 18px 0 0 0; box-shadow: 0 2px 8px rgb(30 56 98 / 6%);">
-                <div class="installation-row" style="display: flex; gap: 24px; align-items: flex-end;">
-                  <div class="field-block" style="flex: 1;">
-                    <label style="font-size: 15px; color: #4a4a4a; margin-bottom: 6px;">Installation By</label>
+              <div class="installation-fields-row" style="display: flex; flex-wrap: nowrap; gap: 12px; align-items: center; background: #f8fafc; border-radius: 8px; padding: 18px 24px 10px; margin: 18px 0 0 0; box-shadow: 0 2px 8px rgb(30 56 98 / 6%);">
+                <!-- Installation By -->
+                <div style="flex: 1; min-width: 140px;">
+                  <div style="font-size: 12px; color: #888; font-weight: 500; margin-bottom: 2px;">Installation By</div>
+                  @if (currentOrderStage === 'DELIVERED') {
+                    <mat-form-field appearance="outline" style="width: 100%; font-size: 13px;">
+                      <mat-select formControlName="installationBy" style="font-size: 13px;">
+                        @for (option of deliveryChannelOptions; track $index) {
+                          <mat-option [value]="option" style="font-size: 13px;">{{ option }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <div style="padding: 8px 0 0 8px; font-size: 13px; min-height: 40px;">
+                      {{ orders[0].installation_by }}
+                    </div>
+                  }
+                </div>
+                <!-- Installation Team Members (only if UFC Team) -->
+                @if ((currentOrderStage === 'DELIVERED' && deliveryDetailsForm.get('installationBy')?.value === 'UFC Team') ||
+                      (currentOrderStage === 'COMPLETED' && orders[0].installation_by === 'UFC Team')) {
+                  <div style="flex: 1; min-width: 180px;">
+                    <div style="font-size: 12px; color: #888; font-weight: 500; margin-bottom: 2px;">Installation Team Members</div>
                     @if (currentOrderStage === 'DELIVERED') {
-                      <div [formGroup]="deliveryDetailsForm">
-                        <input type="text" formControlName="installationBy" style="height: 40px; border-radius: 6px; border: 1px solid #c8cfda; font-size: 16px; padding: 0 12px;" />
+                      <mat-form-field appearance="outline" style="width: 100%; font-size: 13px;">
+                        <mat-select formControlName="installationTeamMembers" multiple style="font-size: 13px;">
+                          @for (member of ufcTeamList; track $index) {
+                            <mat-option [value]="member.name" style="font-size: 13px;">{{ member.name }}</mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    } @else {
+                      <div style="padding: 8px 0 0 8px; font-size: 13px; min-height: 40px;">
+                        {{ getInstallationTeamMembersDisplay() }}
                       </div>
-                    } @else if (currentOrderStage === 'COMPLETED') {
-                      <p class="field-text field-readonly" style="min-height: 40px; font-size: 16px; color: #1f1f1f;">{{ orders[0].installation_by }}</p>
                     }
                   </div>
-                  <div class="field-block" style="flex: 1;">
-                    <label style="font-size: 15px; color: #4a4a4a; margin-bottom: 6px;">Installation Charge (AED)</label>
-                    @if (currentOrderStage === 'DELIVERED') {
-                      <div [formGroup]="deliveryDetailsForm">
-                        <input type="number" min="0" formControlName="installationCharge" style="height: 40px; border-radius: 6px; border: 1px solid #c8cfda; font-size: 16px; padding: 0 12px;" />
-                      </div>
-                    } @else if (currentOrderStage === 'COMPLETED') {
-                      <p class="field-text field-readonly" style="min-height: 40px; font-size: 16px; color: #1f1f1f;">{{ orders[0].installation_charge }}</p>
-                    }
-                  </div>
+                }
+                <!-- Installation Charge -->
+                <div style="flex: 1; min-width: 120px;">
+                  <div style="font-size: 12px; color: #888; font-weight: 500; margin-bottom: 2px;">Installation Charge (AED)</div>
+                  @if (currentOrderStage === 'DELIVERED') {
+                    <mat-form-field appearance="outline" style="width: 100%; font-size: 13px;">
+                      <input matInput type="number" min="0" formControlName="installationCharge" style="font-size: 13px;" />
+                    </mat-form-field>
+                  } @else {
+                    <div style="padding: 8px 0 0 8px; font-size: 13px; min-height: 40px;">
+                      {{ orders[0].installation_charge }}
+                    </div>
+                  }
                 </div>
               </div>
             }
 
             <div class="action-buttons">
-              <button class="btn-dark" type="button" [disabled]="!canPrintAndDeliver" (click)="printDeliveryNote()">
-                Print Delivery Note
-              </button>
+              @if(currentOrderStage === 'PROCESSED'){
+                <button class="btn-dark" type="button" [disabled]="!canPrintAndDeliver" (click)="printDeliveryNote()">
+                  Print Delivery Note
+                </button>
+              }
               <div class="right-actions">
-                @if (currentOrderStage !== 'COMPLETED') {
-                  <label class="notify-check">
-                    <input type="checkbox" [checked]="notifyCustomer" />
-                    {{ deliveryActionLabel === 'Completed' ? 'Ask Review' : 'Notification' }}
-                  </label>
-                }
-                @if (currentOrderStage !== 'COMPLETED') {
-                  <button
-                    class="btn-primary"
-                    [class.btn-completed]="deliveryActionLabel === 'Completed'"
-                    type="button"
-                    [disabled]="creatingDelivery"
-                    (click)="onDeliverClick()"
-                  >
-                    {{ creatingDelivery ? 'Saving...' : (deliveryActionLabel + ' ›') }}
-                  </button>
+                @if(currentOrderStage !== 'COMPLETED'){
+                  <div class="actions-stack">
+                    
+                    <label class="notify-check">
+                      <input type="checkbox" [checked]="notifyCustomer" />
+                      {{
+                        currentOrderStage === 'DELIVERED'
+                          ? 'Ask Review'
+                          : currentOrderStage === 'DISPATCHED'
+                            ? 'Send Delivery Notification'
+                            : 'Send Dispatch Notification'
+                      }}
+                    </label>
+
+                    <button
+                      class="btn-primary"
+                      [class.btn-completed]="deliveryActionLabel === 'Completed'"
+                      type="button"
+                      [disabled]="creatingDelivery"
+                      (click)="onDeliverClick()"
+                    >
+                      {{ creatingDelivery ? 'Saving...' : (deliveryActionLabel + ' ›') }}
+                    </button>
+
+                  </div>
                 }
               </div>
             </div>
           </div>
         }
       </section>
-      @if (currentOrderStage === 'DELIVERED' || currentOrderStage === 'COMPLETED') {
+      <!-- @if (currentOrderStage === 'DELIVERED' || currentOrderStage === 'COMPLETED') {
         <section class="card deliveries-card">
           <h3>Delivered Table</h3>
           <table>
@@ -358,7 +437,7 @@
             </tbody>
           </table>
         </section>
-      }
+      } -->
     </div>
 
 
@@ -396,7 +475,24 @@
           {{ savingCustomerNote ? 'Saving...' : 'Save Note' }}
         </button>
         <div class="notes-table-wrap">
-          <table class="notes-table">
+          <!-- <div class="history-list"> -->
+            @if (customerNotes.length === 0) {
+              <tr>
+                <td colspan="3">No customer notes saved</td>
+              </tr>
+            } @else {
+              @for (event of customerNotes; track $index) {
+                <div class="history-item">
+                  <!-- <span>{{ event.sequence }}</span> -->
+                  <div class="history-content">
+                    <p class="meta"><strong>{{ event.by }}</strong> · {{ event.at }}</p>
+                    <p class="message">{{ event.text }}</p>
+                  </div>
+                </div>
+              }
+            }
+          <!-- </div> -->
+          <!-- <table class="notes-table">
             <thead>
               <tr>
                 <th>Customer Note</th>
@@ -419,7 +515,7 @@
                 }
               }
             </tbody>
-          </table>
+          </table> -->
         </div>
       </section>
 
@@ -439,30 +535,21 @@
           {{ savingAdditionalComment ? 'Saving...' : 'Save Comment' }}
         </button>
         <div class="notes-table-wrap">
-          <table class="notes-table">
-            <thead>
-              <tr>
-                <th>Additional Comment</th>
-                <th>By</th>
-                <th>At</th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (additionalComments.length === 0) {
-                <tr>
-                  <td colspan="3">No additional comments saved</td>
-                </tr>
-              } @else {
-                @for (comment of additionalComments; track $index) {
-                  <tr>
-                    <td>{{ comment.text }}</td>
-                    <td>{{ comment.by }}</td>
-                    <td>{{ comment.at }}</td>
-                  </tr>
-                }
-              }
-            </tbody>
-          </table>
+          @if (additionalComments.length === 0) {
+            <tr>
+              <td colspan="3">No additional comments saved</td>
+            </tr>
+          } @else {
+            @for (comment of additionalComments; track $index) {
+              <div class="history-item">
+                <!-- <span>{{ event.sequence }}</span> -->
+                <div class="history-content">
+                  <p class="meta"><strong>{{ comment.by }}</strong> · {{ comment.at }}</p>
+                  <p class="message">{{ comment.text }}</p>
+                </div>
+              </div>
+            }
+          }
         </div>
       </section>
 
